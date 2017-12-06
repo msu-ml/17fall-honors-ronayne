@@ -74,10 +74,10 @@ def summarizeProbabilityScoring(scoring, step_size=0.05):
 def printBins(bins):
 	for rng, results in sorted(bins.items(), key=lambda x: x[0], reverse=True):
 		print('>= {:.2f}: {} / {} ({:.1f}%)'.format(rng,  
-													 results['correct'], 
-													 results['samples'], 
-													 results['correct'] / results['samples'] * 100 \
-													 if results['samples'] else 0.0))
+							 results['correct'], 
+							 results['samples'], 
+							 results['correct'] / results['samples'] * 100 \
+							 if results['samples'] else 0.0))
 
 
 def main():
