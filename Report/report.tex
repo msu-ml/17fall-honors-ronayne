@@ -1,0 +1,247 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%2345678901234567890123456789012345678901234567890123456789012345678901234567890
+%        1         2         3         4         5         6         7         8
+
+\documentclass[letterpaper, 10 pt, conference]{ieeeconf}
+\IEEEoverridecommandlockouts
+\overrideIEEEmargins
+
+\usepackage{booktabs}
+
+\title{\LARGE \bf
+Predicting the Outcome of NHL Games Using Machine Learning Methods
+}
+
+\author{Michael Ronayne$^{1}$% <-this % stops a space
+\thanks{$^{1}$Michael Ronayne is a computer science student in the Honors College of Michigan State University
+        {\tt\small ronayne1@msu.edu}}%
+}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\pagestyle{empty}
+
+
+\section{PROBLEM DESCRIPTION}
+
+The National Hockey League is the premier professional ice hockey league in North America. The league is composed of 31 teams, with 24 located in the United States, and 6 in Canada. Since the league's inception in 1917, game results and team-level statistics have been accurately collected and made publicly available.
+
+While online sports betting is only legal in a few states, there would be great value to knowing the outcome of an NHL game before it starts. In this paper, a method for predicting the outcome of NHL games using machine learning techniques will be outlined in detail.
+
+\section{Data Description}
+
+Individual game result data was collected for the seasons spanning from 2000-2001 to 2016-2017. The 2004-2005 and 2012-2013 seasons were excluded due to labor negotiations. Therefore, game result data was collected for 15 seasons.
+
+Each NHL team competes in 82 games during the regular season, with the total number of games totaling 1,271. Therefore, this dataset contained 19,065 game results. 
+
+\section{METHODS}
+
+\subsection{Approach / Theory}
+
+As a season progresses, the amount of data available for each team also increases. Therefore, in theory, as a season progresses, predictions about the outcome of a game should become more accurate. In the extreme example, predicting the outcome of the second game of the season (where the only information available for each team comes from their first game) should be much more difficult than predicting the outcome of the last game of the season (where information from essentially the team's entire season is available).
+
+Using this thought process, the data was filtered to only include games played in the second half of the season.
+
+\subsection{Data Collection and Preprocessing}
+
+The data was collected via a single call to the NHL.com/stats API. The resulting JSON object was stored in a Python Pandas DataFrame. Each row in the data represents one team's performance in a single game. Therefore, there are two rows associated with each game (one for the home team, another for the road team). The fields composing this data are listed in the Data Description.
+
+From the original data, some irrelevant fields were dropped. Other metrics, such as winStreak, were generated from the data. Table I shows the final metrics used.
+
+
+\begin{table}[h]
+\centering
+\caption{Metrics}
+\begin{tabular}{p{2.5cm}p{4cm}}
+
+\toprule
+\multicolumn{1}{c}{\textbf{Feature}} & \multicolumn{1}{c}{\textbf{Description}}                             \\ \midrule
+faceoffWinPctg                       & Face-off win percentage                                              \\
+goalsFor                             & Goals scored                                                         \\
+goalsAgainst                         & Goals allowed                                                        \\
+points                               & 2 points for a win, 1 for an overtime or shootout loss, 0 for a loss \\
+ppGoalPctg                           & Percentage of power-plays resulting in a goal                        \\
+pkSavePctg                           & Percentage of penalty-kills not resulting in a goal                  \\
+shotsFor                             & Shots taken                                                          \\
+shotsAgainst                         & Shots by opposing team                                               \\
+shNumTimes                           & Number of penalites taken by the team                                \\
+daysBetweenGames                     & Time since the team last played                                      \\
+winStreak                            & Number of consecutive games won                                      \\
+loseStreak                           & Number of consecutive games lost                                     \\ \bottomrule
+\end{tabular}
+\end{table}
+
+The features for each game were transformed into the cumulative sum of those features for every game prior to the current game.
+
+As previously mentioned, all games in which at least one of the teams had not played 41 games (the halfway point of the season) were discarded. Games resulting in ties were also discarded (as of the 2005-2006 season, games can no longer end in a tie).
+
+The two rows associated with each game were then combined into one row using the following method:
+$$
+Home\ team\ features - Road\ team\ features\ {(1)}
+$$
+
+
+The class label for each sample becomes the boolean value $Home\ team\ won$.
+
+The final step of preprocessing was normalizing each column to a zero mean. Table II demonstrates a simplified example of the transformation from raw data to the final dataset.
+
+\begin{table}[h]
+\centering
+\caption{Preprocessing Steps}
+\begin{tabular}{llllll}
+
+\multicolumn{5}{c}{\textbf{A. Original Data}}                                                    \\\toprule
+\textbf{Game ID}    & \textbf{Team}              & \textbf{Location}         & \textbf{Goals}       & \textbf{Winner}             \\\midrule1          & Detroit           & Home             & 6           & 1                  \\1          & New York          & Away             & 2           & 0                  \\\hline2          & Detroit           & Home             & 1           & 0                  \\2          & New York          & Away             & 3           & 1                  \\\hline3          & Detroit           & Away             & 2           & 0                  \\3          & New York          & Home             & 1           & 1                  \\\bottomrule\end{tabular}\\
+\medskip
+\centering
+\begin{tabular}{@{}llllll@{}}
+
+\multicolumn{6}{c}{\textbf{B. Cumulative Sum Data}}                                                                    \\\toprule 
+\textbf{Game ID} & \textbf{Team} & \textbf{Location} & \textbf{Sum Goals} & \textbf{Sum Wins} & \textbf{Winner} \\\midrule
+2                & Detroit       & Home              & 6                    & 1                   & 0               \\
+2                & New York      & Away              & 2                    & 0                   & 1               \\\hline
+3                & Detroit       & Away              & 7                    & 1                   & 0               \\
+3                & New York      & Home              & 5                    & 1                   & 1               \\ \bottomrule
+\end{tabular}\\
+\medskip
+\centering
+\begin{tabular}{@{}llllll@{}}
+
+\multicolumn{4}{c}{\textbf{C. Final Data}}                                                                                                                                 \\\toprule
+\multicolumn{1}{c}{\textbf{Game ID}} & \multicolumn{1}{c}{\textbf{Goal Difference}} & \multicolumn{1}{c}{\textbf{Win Difference}} & \multicolumn{1}{c}{\textbf{Winner}} \\\midrule
+2                                    & 4                                            & 1                                           & 0                                   \\
+3                                    & -2                                           & 0                                           & 1                                   \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Machine Learning Techniques}
+
+The data from the 2000-2001 to 2014-2015 seasons were used as the training data. These totaled 7,845 game samples.
+
+The data from the 2015-2016 and 2016-2017 seasons were then used as the testing data.
+
+As a fact of sports, the home team wins more frequently than the road team. To account for this class imbalance, games in which the home team won were randomly discarded in the training set until the number of games in which the home and road teams won were equal.
+
+The Python Scikit-Learn package was used to apply three machine learning algorithms to the dataset as shown in Table III.
+
+\begin{table}[h]
+\caption{Machine learning algorithms and hyperparameters}
+\centering
+\begin{tabular}{@{}ll@{}}
+\multicolumn{2}{c}{\textbf{Logistic Regression}} \\ \toprule
+\textbf{Parameter}     & \textbf{Tested Values}     \\ \midrule
+C & 0.01, 0.1, 1, 10, 100\\
+dual & True, False\\
+penalty & l1, l2\\
+tol & 1e-3, 1e-4\\
+max\_iter & 100, 500, 1000\\\bottomrule
+\end{tabular}\\\medskip
+\begin{tabular}{@{}ll@{}}
+\multicolumn{2}{c}{\textbf{Random Forest}}                                       \\ \toprule
+\textbf{Parameter} & \textbf{Tested Values} \\\midrule
+n\_estimators & 100, 500, 1000\\
+max\_features & sqrt, None\\
+max\_depth & 3, 4, None\\
+min\_samples\_split & 2, 3, 10\\
+criterion & gini, entropy\\\bottomrule
+\end{tabular}\\\medskip
+\begin{tabular}{@{}ll@{}}
+\multicolumn{2}{c}{\textbf{Support Vector Machine}}                                       \\ \toprule
+\textbf{Parameter} & \textbf{Tested Values} \\\midrule
+C & 0.01, 0.1, 1, 10, 100\\
+kernel & linear, poly, rbf, sigmoid\\
+degree & 2, 3, 4\\
+tol & 1e-3, 1e-4\\\bottomrule
+\end{tabular}
+\end{table}
+
+Scikit-learn's GridSearchCV was used to perform a 3-fold cross-validation on the training set. The GridSearchCV does an exhaustive trial of the specified parameter values, and returns the best estimator trained using the tuned hyper-parameters. The learning script was run on a high-performing computing cluster (HPCC).
+
+\section{Results}
+
+Table IV summarizes the optimal tuned parameters for each estimator after being trained on the testing set. When reviewing the accuracies, note that a baseline estimator that simply predicts $Home\ team\ won$ for each testing sample would have an accuracy of 53.3\%.
+
+\begin{table}[h]
+\caption{Best Parameters of Each Classifier}
+\centering
+\begin{tabular}{@{}ll@{}}
+\multicolumn{2}{c}{\textbf{Logistic Regression}} \\ \toprule
+\textbf{Parameter}     & \textbf{Best Value}     \\ \midrule
+C                      & 0.01                    \\
+dual                   & False                   \\
+max\_iter              & 100                     \\
+penalty                & l2                      \\
+tol                    & 0.0001                  \\\midrule
+Accuracy & 56.9\% \\\bottomrule
+\end{tabular}\\\medskip
+\begin{tabular}{@{}ll@{}}
+
+\multicolumn{2}{c}{\textbf{Random Forest}}                                       \\ \toprule
+\textbf{Parameter} & \textbf{Best Value} \\\midrule
+criterion                              & entropy                                 \\
+max\_depth                             & 3                                       \\
+max\_features                          & sqrt                                    \\
+min\_samples\_split                    & 3                                       \\
+n\_estimators                          & 100                                     \\ \midrule
+Accuracy & 57.4\% \\\bottomrule
+\end{tabular}
+\end{table}
+
+Ultimately, the Random Forest Classifier performed the best in terms of overall accuracy.  Detailed performance metrics for the Random Forest Classifier are shown in Table V.
+
+\begin{table}[]
+\centering
+\caption{Random Forest Performance Metrics}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\textbf{Class} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{Support} \\ \midrule
+0              & 0.54               & 0.58            & 0.56              & 585              \\
+1              & 0.61               & 0.57            & 0.59              & 669              \\ \midrule
+Avg / Total    & 0.58               & 0.57            & 0.57              & 1254             \\ \bottomrule
+\end{tabular}\\\medskip
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+\multicolumn{3}{l}{\textbf{Confusion Matrix}} \\ \midrule
+Class             & 0               & 1              \\
+0            & 58\%            & 42\%           \\
+1            & 43\%            & 57\%           \\ \bottomrule
+\end{tabular}
+\end{table}
+
+In addition to overall binary prediciton accuracy, for each sample in the testing set, a \textit{probability estimate} was made for the likelihood that $Home\ team\ won$. Table VI summarizes those results for the best for the Random Forest Classifier.
+
+
+\begin{table}[h]
+\caption{Prediction Accuracy by Probability}
+\centering
+\begin{tabular}{@{}llll@{}}
+
+\multicolumn{4}{c}{\textbf{Random Forest}}                                                \\\toprule
+\textbf{Prediction Probability} & \textbf{Correct} & \textbf{Total} & \textbf{Percentage} \\ \midrule
+\textgreater= 0.65              & 8                & 13             & 61.5\%             \\
+\textbf{\textgreater= 0.60}     & \textbf{101}     & \textbf{143}   & \textbf{70.6\%}    \\
+\textgreater= 0.55              & 398              & 653            & 60.9\%             \\
+\textgreater= 0.50              & 720              & 1254           & 57.4\%             \\ \bottomrule
+\end{tabular}
+\end{table}
+
+
+\section{Discussion}
+
+While the best accuracy achieved was only 56.9\%, the results grouped by probability show promise. In the case of the Random Forest Classifier, if a bettor were to only bet on games where the prediction probability was greater than or equal to 60\%, the bettor would win 70.6\% of the time. This suggests that a profitable betting strategy might involve not betting on \textit{all} game result predictions, but only those where the classifier is at least 60\% certain of its prediciton. However, the calculation of the profitability of such a strategy would require collecting historical money line betting data, which is beyond the scope of this report.
+
+\section{Future Improvements}
+
+This model uses a relatively small number of features. Future improvements could include advanced statistics at the team and player level (such as Corsi and Fenwick metrics). Different transformations of the data could also be tested, such as keeping the home and away team metrics as separate features (as opposed to the difference between the two), or expressing the home team metrics as a percentage of the away team metrics. More seasons of data could also be included (however, rule changes throughout the years would add complexity). Finally, games earlier in the season could be included and compared to the results from the current method of training only on games at least half-way through the season.
+
+\section*{Further reading}
+
+Joshua Weissbock's thesis \textit{Forecasting Success in the National Hockey League using In-Game Statistics and Textual Data} was a great reference for this project. This project's results were originally discouraging, but this paper proposes that there is a theoretical upper-bound to the prediction accuracy of the outcome of NHL games.
+
+
+
+\end{document}
+
