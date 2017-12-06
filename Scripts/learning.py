@@ -8,21 +8,21 @@ import pandas as pd
 import numpy as np
 
 models = [{'estimator': LogisticRegression(), 'n_jobs': -1, 'param_grid': {'C': [0.01, 0.1, 1, 10, 100],
-															'dual': [True, False],
-															'penalty': ['l1', 'l2'],
-															'tol': [1e-3, 1e-4],
-															'max_iter': [100, 500, 1000]}},
+									'dual': [True, False],
+									'penalty': ['l1', 'l2'],
+									'tol': [1e-3, 1e-4],
+									'max_iter': [100, 500, 1000]}},
 		  {'estimator': RandomForestClassifier(), 'param_grid': {'n_estimators': [100, 500, 1000], 
-															'max_features': ['sqrt', None], 
-															'max_depth': [3, 4, None], 
-															'min_samples_split': [2, 3, 10], 
-															'criterion': ['gini', 'entropy'],
-															'n_jobs': [-1]}},
+									'max_features': ['sqrt', None], 
+									'max_depth': [3, 4, None], 
+									'min_samples_split': [2, 3, 10], 
+									'criterion': ['gini', 'entropy'],
+									'n_jobs': [-1]}},
 		  {'estimator': SVC(), 'n_jobs': -1, 'param_grid': {'C': [0.01, 0.1, 1, 10, 100], 
-															'probability': [True],
-															'kernel':  ['linear', 'poly', 'rbf', 'sigmoid'],
-															'degree': [2, 3, 4],
-															'tol': [1e-3, 1e-4]}}]
+									'probability': [True],
+									'kernel':  ['linear', 'poly', 'rbf', 'sigmoid'],
+									'degree': [2, 3, 4],
+									'tol': [1e-3, 1e-4]}}]
 
 for model in models:
 	model['error_score'] = 0.0
