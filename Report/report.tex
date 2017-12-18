@@ -46,7 +46,7 @@ Using this thought process, the data was filtered to only include games played i
 
 \subsection{Data Collection and Preprocessing}
 
-The data was collected via a single call to the NHL.com/stats API. The resulting JSON object was stored in a Python Pandas DataFrame. Each row in the data represents one team's performance in a single game. Therefore, there are two rows associated with each game (one for the home team, another for the road team). The fields composing this data are listed in the Data Description.
+The data was collected via a single call to the NHL.com/stats API. The resulting JSON object was stored in a Python Pandas DataFrame. Each row in the data represents one team's performance in a single game. Therefore, there are two rows associated with each game (one for the home team, another for the road team).
 
 From the original data, some irrelevant fields were dropped. Other metrics, such as winStreak, were generated from the data. Table I shows the final metrics used.
 
@@ -146,14 +146,6 @@ max\_features & sqrt, None\\
 max\_depth & 3, 4, None\\
 min\_samples\_split & 2, 3, 10\\
 criterion & gini, entropy\\\bottomrule
-\end{tabular}\\\medskip
-\begin{tabular}{@{}ll@{}}
-\multicolumn{2}{c}{\textbf{Support Vector Machine}}                                       \\ \toprule
-\textbf{Parameter} & \textbf{Tested Values} \\\midrule
-C & 0.01, 0.1, 1, 10, 100\\
-kernel & linear, poly, rbf, sigmoid\\
-degree & 2, 3, 4\\
-tol & 1e-3, 1e-4\\\bottomrule
 \end{tabular}
 \end{table}
 
@@ -211,7 +203,7 @@ Class             & 0               & 1              \\
 \end{tabular}
 \end{table}
 
-In addition to overall binary prediciton accuracy, for each sample in the testing set, a \textit{probability estimate} was made for the likelihood that $Home\ team\ won$. Table VI summarizes those results for the best for the Random Forest Classifier.
+In addition to overall binary prediciton accuracy, for each sample in the testing set, a \textit{probability estimate} was made for the likelihood that $Home\ team\ won$. Table VI summarizes these results for the Random Forest Classifier.
 
 
 \begin{table}[h]
@@ -231,7 +223,7 @@ In addition to overall binary prediciton accuracy, for each sample in the testin
 
 \section{Discussion}
 
-While the best accuracy achieved was only 56.9\%, the results grouped by probability show promise. In the case of the Random Forest Classifier, if a bettor were to only bet on games where the prediction probability was greater than or equal to 60\%, the bettor would win 70.6\% of the time. This suggests that a profitable betting strategy might involve not betting on \textit{all} game result predictions, but only those where the classifier is at least 60\% certain of its prediciton. However, the calculation of the profitability of such a strategy would require collecting historical money line betting data, which is beyond the scope of this report.
+While the best accuracy achieved was only 57.4\%, the results grouped by probability show promise. In the case of the Random Forest Classifier, if a bettor were to only bet on games where the prediction probability was greater than or equal to 60\%, the bettor would win 70.6\% of the time. This suggests that a profitable betting strategy might involve not betting on \textit{all} game result predictions, but only those where the classifier is at least 60\% certain of its prediciton. However, the calculation of the profitability of such a strategy would require collecting historical money line betting data, which is beyond the scope of this report.
 
 \section{Future Improvements}
 
@@ -239,7 +231,7 @@ This model uses a relatively small number of features. Future improvements could
 
 \section*{Further reading}
 
-Joshua Weissbock's thesis \textit{Forecasting Success in the National Hockey League using In-Game Statistics and Textual Data} was a great reference for this project. This project's results were originally discouraging, but this paper proposes that there is a theoretical upper-bound to the prediction accuracy of the outcome of NHL games.
+Joshua Weissbock's thesis \textit{Forecasting Success in the National Hockey League using In-Game Statistics and Textual Data} was a great reference for this project. This project's results were originally discouraging, but Weissbock's paper proposes that there is a theoretical upper-bound to the prediction accuracy of the outcome of NHL games.
 
 
 
